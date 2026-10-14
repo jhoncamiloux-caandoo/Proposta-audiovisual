@@ -1,14 +1,15 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
-type Reel = { slug: string; title: string; kind: string; format: "16:9" | "9:16" };
+type Reel = { slug: string; title: string; kind: string; format: "16:9" | "9:16"; yt?: string };
+const ytSrc = (id: string) => `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
 
 const base = "/videos/portfolio";
 const reels: Reel[] = [
- { slug: "como-a-clint-funciona", title: "Descubra como a Clint funciona", kind: "Vídeo institucional", format: "16:9" },
+ { slug: "como-a-clint-funciona", title: "Descubra como a Clint funciona", kind: "Vídeo institucional", format: "16:9", yt: "g22oso2dm9Y" },
  { slug: "apresentando-a-aura", title: "Apresentando a Aura", kind: "Vídeo vertical · lançamento", format: "9:16" },
- { slug: "ferramenta-ruim-ou-cara", title: "Ferramenta ruim ou cara?", kind: "Vídeo explicativo", format: "16:9" },
- { slug: "aura", title: "Aura, o copiloto de IA do CRM", kind: "Lançamento de produto", format: "16:9" },
+ { slug: "ferramenta-ruim-ou-cara", title: "Ferramenta ruim ou cara?", kind: "Vídeo explicativo", format: "16:9", yt: "P8mcAw7WLIs" },
+ { slug: "aura", title: "Aura, o copiloto de IA do CRM", kind: "Lançamento de produto", format: "16:9", yt: "BQY7hjlEPWE" },
  { slug: "vendedor-destaque", title: "Vendedor destaque", kind: "Vídeo vertical · redes", format: "9:16" },
  { slug: "comparativo", title: "Monta um comparativo", kind: "Vídeo vertical · redes", format: "9:16" },
  { slug: "agente-de-suporte", title: "Agente de suporte da Clint", kind: "Vídeo vertical · produto", format: "9:16" },
@@ -42,16 +43,20 @@ export function Showreel() {
  const next = reels[(index + 1) % reels.length];
  const Arrow = ({ dir }: { dir: 1 | -1 }) => <button type="button" className={`reel-arrow ${dir > 0 ? "next" : "prev"}`} onClick={() => select(index + dir)} aria-label={dir > 0 ? "Próximo vídeo" : "Vídeo anterior"}>
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d={dir > 0 ? "M9 5l7 7-7 7" : "M15 5l-7 7 7 7"}/></svg></button>;
- const play = () => { void stage.current?.play().catch(() => setFailed(true)); };
+ const play = () => { if (reel.yt) { setPlaying(true); return; } void stage.current?.play().catch(() => setFailed(true)); };
  const openLightbox = () => { stage.current?.pause(); setLightbox(true); };
 
  return <div className="showreel">
   <div className={`reel-stage is-${reel.format === "9:16" ? "vertical" : "wide"}${playing ? " is-playing" : ""}`}>
    <img className="reel-backdrop" src={`${base}/${reel.slug}.jpg`} alt="" aria-hidden="true"/>
-   <video key={reel.slug} ref={stage} controls={playing} playsInline preload="metadata" poster={`${base}/${reel.slug}.jpg`}
+   {reel.yt
+    ? playing && <iframe key={reel.slug} className="reel-yt" src={ytSrc(reel.yt)} title={reel.title} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen/>
+    : null}
+   {reel.yt && !playing && <img className="reel-poster" src={`${base}/${reel.slug}.jpg`} alt=""/>}
+   {!reel.yt && <video key={reel.slug} ref={stage} controls={playing} playsInline preload="metadata" poster={`${base}/${reel.slug}.jpg`}
     aria-label={reel.title} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => { setPlaying(false); select(index + 1); }} onTimeUpdate={e => { const v = e.currentTarget; if (v.duration) setProgress(v.currentTime / v.duration); }} onError={() => setFailed(true)}>
     <source src={src} type="video/mp4"/>
-   </video>
+   </video>}
    {!playing && <div className="reel-overlay">
     <button type="button" className="reel-play" onClick={play} aria-label={`Reproduzir ${reel.title}`}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg></button>
     <div className="reel-caption"><span className="eyebrow">{reel.kind} · {reel.format}</span><h3>{reel.title}</h3></div>
@@ -78,7 +83,8 @@ export function Showreel() {
   </div>
 
   <dialog ref={dialog} className="reel-lightbox" aria-label={reel.title} onClose={() => setLightbox(false)} onClick={e => { if (e.target === e.currentTarget) setLightbox(false); }}>
-   {lightbox && <video src={src} controls autoPlay playsInline preload="metadata" poster={`${base}/${reel.slug}.jpg`} className={reel.format === "9:16" ? "is-vertical" : undefined}/>}
+   {lightbox && reel.yt && <iframe className="reel-lightbox-yt" src={ytSrc(reel.yt)} title={reel.title} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen/>}
+   {lightbox && !reel.yt && <video src={src} controls autoPlay playsInline preload="metadata" poster={`${base}/${reel.slug}.jpg`} className={reel.format === "9:16" ? "is-vertical" : undefined}/>}
    <button type="button" className="reel-close" onClick={() => setLightbox(false)} aria-label="Fechar">×</button>
   </dialog>
  </div>;
