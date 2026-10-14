@@ -9,6 +9,6 @@ next-env.d.ts
 ._*
 .claude/
 # brutos e notas locais
-Videos/
-Case 1/
-Camilo Site.md
+/Videos/
+/Case 1/
+/Camilo Site.md
