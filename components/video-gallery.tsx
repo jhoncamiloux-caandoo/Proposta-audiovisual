@@ -1,0 +1,10 @@
+"use client";
+import { useRef, useState } from "react";
+const pieces = ["01", "02", "03", "04", "05", "06"];
+export function VideoGallery() {
+ const [active, setActive] = useState("01");
+ const [failed, setFailed] = useState(false);
+ const [playing, setPlaying] = useState(false);
+ const video = useRef<HTMLVideoElement>(null);
+ return <div className="video-gallery"><div className="video-stage"><video key={active} ref={video} controls playsInline preload="none" poster={`/videos/clint/slide-${active}.webp`} aria-label={`Carrossel da Clint, peça ${active}`} onPlay={()=>setPlaying(true)} onPause={()=>setPlaying(false)} onEnded={()=>setPlaying(false)} onError={()=>setFailed(true)}><source src={`/videos/clint/slide-${active}.mp4`} type="video/mp4"/>Seu navegador não suporta vídeo. <a href={`/videos/clint/slide-${active}.mp4`}>Abrir arquivo</a></video>{failed && <p role="alert">Não foi possível carregar o vídeo. <a href={`/videos/clint/slide-${active}.mp4`}>Abrir arquivo diretamente</a></p>}</div><div className="video-info"><p className="eyebrow">Motion design / Clint</p><h3>Carrossel animado</h3><p>Uma sequência visual com mensagens, interfaces e movimento sincronizado à trilha.</p><p className="current-piece" aria-live="polite">Peça {active} <span>/ 06</span></p><div className="video-picker" role="group" aria-label="Escolher peça do carrossel">{pieces.map(n=><button key={n} type="button" aria-pressed={active===n} aria-label={`Ver peça ${n}`} onClick={()=>{ video.current?.pause(); setActive(n); setFailed(false); setPlaying(false); }}><img src={`/videos/clint/slide-${n}.webp`} alt="" loading="lazy" width="160" height="200"/><span>{n}</span></button>)}</div><p className="small">Selecione uma peça e use o player para assistir com som ou ampliar.</p><button className="button primary" type="button" onClick={()=>{ if(playing) video.current?.pause(); else void video.current?.play().catch(()=>setFailed(true)); }}>{playing ? "Pausar vídeo" : "Reproduzir vídeo"}</button> <a className="video-file-link" href={`/videos/clint/slide-${active}.mp4`} download>Baixar peça {active} ↗</a></div></div>;
+}
