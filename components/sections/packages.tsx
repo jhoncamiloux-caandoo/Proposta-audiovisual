@@ -17,7 +17,7 @@ const usePkg = () => useContext(Ctx)!;
 export function PackageProvider({ children }: { children: ReactNode }) {
  const [id, setId] = useState<Pkg["id"]>("padrao");
  const pkg = packages.find(p => p.id === id)!;
- return <Ctx.Provider value={{ pkg, setId }}>{children}</Ctx.Provider>;
+ return <Ctx.Provider value={{ pkg, setId }}><div className="pkg-scope" data-pkg={id}>{children}</div></Ctx.Provider>;
 }
 
 function Swap({ k, children }: { k: string; children: ReactNode }) {
