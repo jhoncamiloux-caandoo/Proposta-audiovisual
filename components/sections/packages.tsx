@@ -9,6 +9,7 @@ export const packages = [
  { id: "ilimitado", name: "Ilimitado", price: 6500, rounds: "Ilimitadas", roundsLong: "Rodadas de ajustes ilimitadas, até a aprovação final", note: "Tranquilidade total para validar com várias áreas e lideranças." },
 ] as const;
 type Pkg = (typeof packages)[number];
+export const cuts = { count: 12, unit: 200, total: 2400 };
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const Ctx = createContext<{ pkg: Pkg; setId: (id: Pkg["id"]) => void } | null>(null);
@@ -45,12 +46,23 @@ export function PackagePicker() {
    <div><dt>Entregas</dt><dd>2 lotes de 7 vídeos</dd></div>
   </dl>
   <p className="small pkg-note"><Swap k={pkg.id}>{pkg.note}</Swap></p>
+  <div className="cuts-addon">
+   <span className="cuts-plus" aria-hidden="true">+</span>
+   <div><strong>Cortes para redes</strong><span>12 vídeos · 40–60 s · 1 rodada de ajustes por corte</span></div>
+   <b>R$ {brl(cuts.total)}<small>R$ {brl(cuts.unit)} por corte</small></b>
+  </div>
+  <p className="project-total"><span>Total do projeto</span><b>R$ <Swap k={pkg.id}>{brl(pkg.price + cuts.total)}</Swap></b></p>
  </div>;
 }
 
 export function PackageTerms() {
  const { pkg, setId } = usePkg();
- const start = pkg.price * .4, end = pkg.price - start;
+ const half = pkg.price / 2, total = pkg.price + cuts.total;
+ const notes = [
+  ["Nota 1 · no início", "Primeiro lote · 7 vídeos institucionais", half],
+  ["Nota 2 · na entrega", "Segundo lote · 7 vídeos institucionais", half],
+  ["Nota 3 · na entrega", "12 cortes para redes", cuts.total],
+ ] as const;
  return <div className="terms">
   <div className="pkg-compare" data-pkg={pkg.id} role="radiogroup" aria-label="Pacote selecionado">
    {packages.map(p => <button key={p.id} type="button" role="radio" data-pkg={p.id} aria-checked={p.id === pkg.id} onClick={() => setId(p.id)}>
@@ -59,14 +71,16 @@ export function PackageTerms() {
    </button>)}
   </div>
   <div><h3>Pacote & revisões</h3><p><Swap k={pkg.id}>{pkg.name}: R$ {brl(pkg.price)} por 14 vídeos de aproximadamente 60 a 90 segundos. {pkg.roundsLong}, respeitando o roteiro e o escopo aprovados.</Swap></p></div>
-  <div><h3>Entregas em dois lotes</h3><p>O projeto é dividido em duas etapas de 7 vídeos. O primeiro lote define o padrão visual; o segundo segue a linguagem aprovada, conforme a chegada dos materiais.</p></div>
-  <div><h3>Pagamento</h3>
-   <div className="pay-split">
-    <div><span>40% no início</span><b><Swap k={pkg.id}>R$ {brl(start)}</Swap></b></div>
-    <div><span>60% na entrega final, com nota fiscal</span><b><Swap k={pkg.id}>R$ {brl(end)}</Swap></b></div>
-    <span className="pay-bar" aria-hidden="true"><motion.i initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ duration: .9, ease }}/></span>
-   </div>
-   <p>Formatos e resoluções finais definidos em conjunto antes do início.</p></div>
+  <div><h3>Cortes para redes</h3><p>R$ {brl(cuts.total)} por 12 cortes de 40 a 60 segundos (R$ {brl(cuts.unit)} cada), com uma rodada de ajustes por corte.</p></div>
+  <div><h3>Entregas em três etapas</h3><p>Dois lotes de 7 vídeos institucionais e um lote de 12 cortes. O primeiro lote define o padrão visual; os seguintes seguem a linguagem aprovada, conforme a chegada dos materiais.</p></div>
+  <div><h3>Pagamento em 3 notas</h3>
+   <ol className="pay-notes">
+    {notes.map(([label, desc, value], i) => <li key={label}>
+     <span className="pay-seg" aria-hidden="true"><motion.i style={{ transformOrigin: "left" }} initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ duration: .7, ease, delay: i * .15 }}/></span>
+     <small>{label}</small><b><Swap k={pkg.id + i}>R$ {brl(value)}</Swap></b><span>{desc}</span>
+    </li>)}
+   </ol>
+   <p>Nota 1 emitida no início do projeto; notas 2 e 3 na entrega de cada lote. Total: <Swap k={pkg.id}>R$ {brl(total)}</Swap>. Formatos e resoluções finais definidos em conjunto antes do início.</p></div>
   <div><h3>Alterações de escopo</h3><p>Mudanças de roteiro, alterações estruturais após aprovação e solicitações fora do escopo podem exigir orçamento adicional, alinhado antes da execução.</p></div>
   <div><h3>Cronograma & materiais</h3><p>O calendário será acordado com a FSB e depende do recebimento dos materiais e das aprovações necessárias. Não há prazo fixo assumido nesta proposta.</p></div>
  </div>;
